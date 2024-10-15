@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Name: Sameer Khichi
+# MacID: khichis
+# Student Number: 400518172
+
 #Displays the usage of the program
 usage() {
     echo "Usage: bn <year> <assigned gender: f|F|m|M|b|B>" >&2
@@ -9,7 +13,7 @@ usage() {
 #Displays information when the help flag is used
 help() {
     echo "bn Utility - Baby Names Rank Finder"
-    echo "Version 1.0"
+    echo "Version 0.1.3"
     echo
     echo "This utility finds the rank of baby names for a given year and gender."
     echo
@@ -26,14 +30,50 @@ rank() {
     local name=$1
     local year=$2
     local gender=$3
+    local file="us_baby_names/yob$year.txt"
 
-    # Logic to find and return the rank for the given name, year, and gender
-    #need to implement the logic to read from the database of names 
-    #need to implement the logic that returns the ranking
-    echo "Rank for $name in $year for gender $gender: "
+    local gender_pattern=""
+    if [[ "$gender" =~ [fF] ]]; then
+        gender_pattern="^[fF]$"
+    elif [[ "$gender" =~ [mM] ]]; then
+        gender_pattern="^[mM]$"
+    elif [[ "$gender" =~ [bB] ]]; then
+        gender_pattern="^[fFmM]$"
+    fi
+
+    #checks to see if the name was found
+    local namefound=false
+
+    # Read the file line by line
+    while read line; do
+        # take out rank, name, and gender from the line
+        rank=$(echo "$line" | cut -d',' -f1)
+        name_in_file=$(echo "$line" | cut -d',' -f2)
+        gender_in_file=$(echo "$line" | cut -d',' -f3)
+
+        #Check to see if the gender and the name match the pattern
+        if [[ "$name" == "$name_in_file" && "$gender_in_file" =~ $gender_pattern ]]; then
+            echo "$year: $name ranked $rank out of $(wc -l < $file) ${gender_in_file,,} names."
+            namefound=true
+        fi
+    done < "$file"
+
+    #Handles if the name was not found 
+    if ! $namefound; then
+        if [[ "$gender" =~ [bB] ]]; then
+            echo "$year: $name not found among male or female names."
+        else
+            echo "$year: $name not found among ${gender,,} names."
+        fi
+    fi
 }
 
 if [[ $# == 0 ]]; 
+then
+
+    help
+
+elif [[ $1 == "--help" ]]; 
 then
 
     help
@@ -48,12 +88,42 @@ fi
 year=$1
 gender=$2
 
-#need to implement the checks for valid input
+#Checking the years format
+if ! [[ "$year" =~ ^[0-9]{4}$ ]]; 
+then
+
+    echo "Error: Year must be a four-digit integer." >&2
+    usage
+
+fi
+
+#Checking the genders format
+if ! [[ "$gender" =~ ^[fFmMbB]$ ]]; 
+then
+
+    echo "Error: Assigned gender must be f|F|m|M|b|B." >&2
+    usage
+
+fi
+
+#Check if the file for the year specified exists
+if [[ ! -f "us_baby_names/yob$year.txt" ]]; 
+then
+
+    echo "Error: No data file exists for the selected year $year." >&2
+    exit 4
+
+fi
 
 #reading the names from stdin until EOF
 while read name; 
 do
-    #need to implement if the name is still valid
-    rank "$name" "$year" "$gender"
-done
 
+    #Checking if the name entered in valid (Only alphabetical characters)
+    if ! [[ "$name" =~ ^[a-zA-Z]+$ ]]; then
+        echo "Error: Name '$name' is invalid. Only alphabetical characters are allowed." >&2
+        exit 3
+    fi
+    rank "$name" "$year" "$gender"
+
+done
