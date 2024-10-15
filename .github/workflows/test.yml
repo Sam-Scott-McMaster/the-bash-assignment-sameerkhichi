@@ -1,0 +1,23 @@
+name: CI - Test bn Utility
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4  # Check out the repo
+      
+      - name: Run Tests  # Subtask name
+        run: bash test_script.sh > test_results.txt  # Run the test script and redirect output
+
+      - name: Upload Test Results  # Subtask name
+        if: ${{ always() }}  # Do this even if the previous subtask returned a fail code
+        uses: actions/upload-artifact@v4  # This is an upload task
+        with:
+          name: Test Results  # Artifact name
+          path: ./test_results.txt
+
