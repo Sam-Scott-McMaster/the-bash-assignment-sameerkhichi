@@ -9,8 +9,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4  # Check out the repo
+      - uses: actions/checkout@v4  # Check out the repository
       
+      - name: Set Up Environment  # Optional: You can set up any required environment here
+        run: |
+          echo "Setting up environment..."
+          # Add any setup commands if needed (e.g., installing dependencies)
+
       - name: Run Tests  # Subtask name
         run: bash test_script.sh > test_results.txt  # Run the test script and redirect output
 
@@ -19,5 +24,5 @@ jobs:
         uses: actions/upload-artifact@v4  # This is an upload task
         with:
           name: Test Results  # Artifact name
-          path: ./test_results.txt
+          path: ./test_results.txt  # Path to the test results file
 
