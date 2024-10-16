@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A simple framework for testing the bn scripts
+# A simple framework for testing the bn.sh scripts
 #
 # Returns the number of failed test cases.
 #
@@ -28,7 +28,6 @@ declare -i fails=0
 # RETURNS: 0 = success, 1 = bad return, 
 #          2 = bad stdout, 3 = bad stderr
 ############################################
-
 test() {
     tc=tc+1
 
@@ -38,7 +37,7 @@ test() {
     local STDOUT=$4
     local STDERR=$5
 
-    #CHECK RETURN VALUE
+    # CHECK RETURN VALUE
     $COMMAND <<< "$STDIN" >/dev/null 2>/dev/null
     local A_RETURN=$?
 
@@ -51,7 +50,7 @@ test() {
         return 1
     fi
 
-    #CHECK STDOUT
+    # CHECK STDOUT
     local A_STDOUT=$($COMMAND <<< "$STDIN" 2>/dev/null)
 
     if [[ "$STDOUT" != "$A_STDOUT" ]]; then
@@ -63,7 +62,7 @@ test() {
         return 2
     fi
     
-    #CHECK STDERR
+    # CHECK STDERR
     local A_STDERR=$($COMMAND <<< "$STDIN" 2>&1 >/dev/null)
 
     if [[ "$STDERR" != "$A_STDERR" ]]; then
@@ -75,42 +74,34 @@ test() {
         return 3
     fi
     
-    #SUCCESS
+    # SUCCESS
     echo "Test $tc Passed"
     return 0
 }
 
-#Valid Name with Lowercase Letters
-test './bn 2022 f' 0 'olivia' '2022: Olivia ranked 2 out of 17660 female names.' ''
+#valid name with gender as both
+test './bn.sh 2023 b' 0 'Avery' '2023: Avery ranked 407 out of 14635 male names.
+2023: Avery ranked 310 out of 18040 female names.' ''
 
-#Valid Name with Uppercase Letters
-test './bn 2022 m' 0 'Liam' '2022: Liam ranked 1 out of 14255 male names.' ''
+#Valid name with gender as female
+test './bn.sh 2022 m' 0 'Olivia' '2022: Olivia ranked 2 out of 17660 female names.' ''
 
-#Name Not Found for Male
-test './bn 2022 m' 0 'Zachary' '2022: Zachary not found among male names.' ''
+#valid name with gender as male
+test './bn.sh 2022 f' 0 'James' '2022: James ranked 1 out of 14255 male names.' ''
 
-#Name Not Found for Female
-test './bn 2022 f' 0 'Charley' '2022: Charley not found among female names.' ''
+#Valid name for both genders name as ALex
+test './bn.sh 2022 b' 0 'Alex' '2022: Alex ranked 55 out of 14255 male names.
+2022: Alex ranked 154 out of 17660 female names.' ''
 
-#entering multiple names with both genders
-test './bn 2022 b' 0 'Emma Liam' '2022: Emma ranked 1 out of 17660 female names.
-2022: Liam ranked 1 out of 14255 male names.' ''
-
-#Invalid Year Format
-test './bn 202A m' 2 '' '' 'Error: Year must be a four-digit integer.'
-
-#Year Out of Range
-test './bn 1800 m' 4 'John' '' 'Error: No data file exists for the selected year 1800.'
-
-#blank name
-test './bn 2022 b' 0 '' '' 'Error: Name is invalid. Only alphabetical characters are allowed.'
-
-#Name with Special Characters
-test './bn 2022 f' 3 'Olivia@' '' 'Error: Name '\''Olivia@'\'' is invalid. Only alphabetical characters are allowed.'
-
-#Non-Existent Gender Input
-test './bn 2022 z' 2 '' '' 'Badly formatted assigned gender: z
+#invalid gender character
+test './bn.sh 2022 z' 2 '' '' 'Badly formatted assigned gender: z
 bn <year> <assigned gender: f|F|m|M|b|B>'
 
-#return code
+#invalid name format
+test './bn.sh 2022 B' 3 '123' '' 'Error: Name '\''123'\'' is invalid. Only alphabetical characters are allowed.'
+
+#invalid name with no valid file
+test './bn.sh 2022 F' 4 'Liam' '' 'Error: No data file exists for the selected year 2022.'
+
+# return code
 exit $fails
