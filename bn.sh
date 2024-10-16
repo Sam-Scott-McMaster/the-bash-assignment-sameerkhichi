@@ -169,15 +169,19 @@ then
     exit 4
 fi
 
-while read -r name || [[ -n "$name" ]]; 
-do
+#keep reading input until EOF
+while true; do
+    echo "Enter names (or press Ctrl+D to exit):"
+    read -r line || break  # Break if EOF 
 
-    # Checking if the name entered is valid (Only alphabetical characters)
-    if ! [[ "$name" =~ ^[a-zA-Z]+$ ]]; then
-        echo "Error: Name '$name' is invalid. Only alphabetical characters are allowed." >&2
-        continue 
-    fi
+    #whitespace indicates new name
+    for name in $line; do
+        # Checking if the name entered is valid (Only alphabetical characters)
+        if ! [[ "$name" =~ ^[a-zA-Z]+$ ]]; then
+            echo "Error: Name '$name' is invalid. Only alphabetical characters are allowed." >&2
+            continue 
+        fi
 
-    rank "$name" "$year" "$gender"
-
+        rank "$name" "$year" "$gender"
+    done
 done
