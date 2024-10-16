@@ -4,13 +4,13 @@
 # MacID: khichis
 # Student Number: 400518172
 
-# Displays the usage of the program
+#Displays the usage of the program
 usage() {
     echo "Usage: bn <year> <assigned gender: f|F|m|M|b|B>" >&2
     exit 1
 }
 
-# Displays information when the help flag is used
+#Displays information when the help flag is used
 help() {
     echo "bn Utility - Baby Names Rank Finder"
     echo "Version 0.2.0"
@@ -25,7 +25,7 @@ help() {
     exit 0
 }
 
-# Essential function to get the rank of the name provided
+#Gets the rank of the name fed from the user
 rank() {
     local name=$1
     local year=$2
@@ -34,7 +34,6 @@ rank() {
     local gender_pattern=""
 
     #Determine the gender pattern and the word for the gender output
-    
     if [[ "$gender" =~ [fF] ]]; then
         gender_pattern="^[fF]$"
         gender_word="female"
@@ -77,8 +76,9 @@ rank() {
         name_in_file=$(echo "$line" | cut -d',' -f1)
         gender_in_file=$(echo "$line" | cut -d',' -f2 | tr -d '[:space:]')
 
-        #check the male names
+        #check the male names against what was entered 
         if [[ "$gender_in_file" =~ ^[mM]$ ]]; then
+            
             ((rank_male++))
 
             #if the name entered is the same in the file print it rank
@@ -94,7 +94,7 @@ rank() {
             fi
         fi
 
-        #check the female names
+        #check the female names against what was entered, structured the same as the male checker
         if [[ "$gender_in_file" =~ ^[fF]$ ]]; then
             ((rank_female++))
 
@@ -124,7 +124,7 @@ rank() {
             fi
         fi
 
-        #handling if the gender given wasnt both
+        #handling if the gender given wasnt both, for both males and females
         if [[ "$gender" =~ ^[fF]$ ]]; then
             if [[ $namefound_female == false ]];then
                 echo "$year: $name not found among female names."
@@ -171,7 +171,7 @@ fi
 
 #keep reading input until EOF
 while true; do
-    echo "Enter names (or press Ctrl+D to exit):"
+    echo "Enter names or press Ctrl+D to exit:"
     read -r line || break  # Break if EOF 
 
     #whitespace indicates new name
