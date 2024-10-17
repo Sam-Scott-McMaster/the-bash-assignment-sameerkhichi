@@ -7,13 +7,12 @@
 #Displays the usage of the program
 usage() {
     echo "Usage: bn <year> <assigned gender: f|F|m|M|b|B>" >&2
-    exit 1
 }
 
 #Displays information when the help flag is used
 help() {
     echo "bn Utility - Baby Names Rank Finder"
-    echo "Version 0.2.0"
+    echo "Version 1.0.3"
     echo
     echo "This utility finds the rank of baby names for a given year and gender."
     echo
@@ -143,6 +142,7 @@ rank() {
 if [[ $# != 2 ]]; 
 then
     usage
+    exit 1
 fi
 
 year=$1
@@ -153,6 +153,7 @@ if ! [[ "$year" =~ ^[0-9]{4}$ ]];
 then
     echo "Error: Year must be a four-digit integer." >&2
     usage
+    exit 2
 fi
 
 #Checking the genders format
@@ -160,6 +161,7 @@ if ! [[ "$gender" =~ ^[fFmMbB]$ ]];
 then
     echo "Error: Assigned gender must be f|F|m|M|b|B." >&2
     usage
+    exit 2
 fi
 
 # Check if the file for the specified year exists
@@ -179,9 +181,11 @@ while true; do
         # Checking if the name entered is valid (Only alphabetical characters)
         if ! [[ "$name" =~ ^[a-zA-Z]+$ ]]; then
             echo "Error: Name '$name' is invalid. Only alphabetical characters are allowed." >&2
-            continue 
+            exit 3 
         fi
 
         rank "$name" "$year" "$gender"
     done
 done
+
+exit 0

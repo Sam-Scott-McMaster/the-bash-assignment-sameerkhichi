@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# A simple framework for testing the bn.sh scripts
+# A simple framework for testing the bn.sh script
 #
 # Returns the number of failed test cases.
 #
@@ -50,8 +50,8 @@ test() {
         return 1
     fi
 
-    # CHECK STDOUT
-    local A_STDOUT=$($COMMAND <<< "$STDIN" 2>/dev/null)
+    # CHECK STDOUT, filtering out the "Enter names" prompt
+    local A_STDOUT=$($COMMAND <<< "$STDIN" 2>/dev/null | grep -v "Enter names or press Ctrl+D to exit:")
 
     if [[ "$STDOUT" != "$A_STDOUT" ]]; then
         echo "Test $tc Failed"
@@ -79,29 +79,39 @@ test() {
     return 0
 }
 
-#valid name with gender as both
-test './bn.sh 2023 b' 0 'Avery' '2023: Avery ranked 407 out of 14635 male names.
-2023: Avery ranked 310 out of 18040 female names.' ''
+##########################################
+# TEST CASES
+##########################################
 
-#Valid name with gender as female
-test './bn.sh 2022 m' 0 'Olivia' '2022: Olivia ranked 2 out of 17660 female names.' ''
+# 1. Valid usage: Male name for 2022, expecting return code 0
+test './bn.sh 2022 m' 0 'James' '2022: James ranked 4 out of 14255 male names.' ''
 
-#valid name with gender as male
-test './bn.sh 2022 f' 0 'James' '2022: James ranked 1 out of 14255 male names.' ''
+# 2. Valid usage: Female name for 2022, expecting return code 0
+test './bn.sh 2022 f' 0 'Olivia' '2022: Olivia ranked 1 out of 17660 female names.' ''
 
-#Valid name for both genders name as ALex
-test './bn.sh 2022 b' 0 'Alex' '2022: Alex ranked 55 out of 14255 male names.
-2022: Alex ranked 154 out of 17660 female names.' ''
+# 3. Valid usage: Both genders for 1969, expecting return code 0
+test './bn.sh 1969 b' 0 'sam' '1969: sam ranked 5861 out of 8708 female names.
+1969: sam ranked 318 out of 5042 male names.' ''
 
-#invalid gender character
-test './bn.sh 2022 z' 2 '' '' 'Badly formatted assigned gender: z
-bn <year> <assigned gender: f|F|m|M|b|B>'
+# 4. Invalid assigned gender: Expecting return code 2 (for invalid gender format)
+test './bn.sh 2022 z' 2 'Sam' '' 'Error: Assigned gender must be f|F|m|M|b|B.
+Usage: bn <year> <assigned gender: f|F|m|M|b|B>'
 
-#invalid name format
-test './bn.sh 2022 B' 3 '123' '' 'Error: Name '\''123'\'' is invalid. Only alphabetical characters are allowed.'
+# 5. Incorrect year format: Expecting return code 2 (invalid year format)
+test './bn.sh 202A m' 2 '' '' 'Error: Year must be a four-digit integer.
+Usage: bn <year> <assigned gender: f|F|m|M|b|B>'
 
-#invalid name with no valid file
-test './bn.sh 2022 F' 4 'Liam' '' 'Error: No data file exists for the selected year 2022.'
+# 6. Missing data file: Expecting return code 4 (file not found for the year)
+test './bn.sh 1800 m' 4 '' '' 'Error: No data file exists for the selected year 1800.'
 
-# return code
+# 7. Invalid name exits with code 3
+test './bn.sh 2022 b' 3 'Sam123' '' 'Error: Name '\''Sam123'\'' is invalid. Only alphabetical characters are allowed.'
+
+# 8. No names found in the dataset for given name and gender: Valid case with no output for names.
+test './bn.sh 2022 f' 0 'NotAName' '2022: NotAName not found among female names.' ''
+
+# 9. Valid usage: Expect return code 0 for valid input.
+test './bn.sh 1969 f' 0 'sam' '1969: sam ranked 5861 out of 8708 female names.' ''
+
+# Return final number of failures
 exit $fails
